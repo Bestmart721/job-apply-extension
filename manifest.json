@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "Job Application Filter",
+    "description": "Highlight blacklisted companies in job listings and support hotkeys on some platforms.",
+    "version": "2.0",
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": "262404.png"
+    },
+    "permissions": ["storage"],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.indeed.com/jobs*",
+                "https://www.dice.com/jobs*",
+                "https://www.builtin.com/jobs*",
+                "https://builtin.com/jobs*",
+                "https://builtin.com/job*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "styles.css"
+            ]
+        }
+    ]
+}
