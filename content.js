@@ -15,6 +15,9 @@ function highlightBlacklistedCompanies() {
     if (window.location.hostname.includes('builtin.com')) {
         companyElements = document.querySelectorAll('[data-id="company-title"]');
     }
+    if (window.location.hostname.includes('welcometothejungle.com')) {
+        companyElements = document.querySelectorAll('[data-testid="job-title"]>a');
+    }
 
     companyElements.forEach(companyElement => {
         const companyName = companyElement.textContent.trim().replace(/\/|\\|:|\*|\?|"|<|>|\||-/g, '_');
@@ -38,20 +41,21 @@ console.log('Extension script loaded');
 let eventSource;
 
 function setEventSource(url) {
-    if (eventSource) {
-        eventSource.close();
-    }
-    eventSource = new EventSource(url);
-
-    eventSource.onmessage = function (event) {
-        const companyName = event.data;
-        blacklist.push(companyName);
+    fetch(url, {
+        headers: {
+            'ngrok-skip-browser-warning': 'true'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(companyName => {
+            blacklist.push(companyName);
+        });
         highlightBlacklistedCompanies();
-    };
-
-    eventSource.onerror = function (error) {
+    })
+    .catch(error => {
         console.error('Error:', error);
-    };
+    });
 }
 
 console.log('Content script loaded');
@@ -161,10 +165,19 @@ const requestResume = function () {
         jobDescription = jobDescription.replace('\n\n', '\n');
     }
 
+    if (window.location.hostname.includes('app.welcometothejungle.com')) {
+        jobTitle = document.querySelector('[data-testid="job-title"]').childNodes[0].textContent.trim();
+        companyName = document.querySelector('[data-testid="job-title"]>a').textContent.trim();
+        jobDetails = document.querySelector('[data-testid="job-section"]').children[1].textContent.trim().replace(/\s+/g, ' ').replace('\n', ' ');
+        jobDescription = document.querySelector('[data-testid="job-card-main"]').textContent.trim();
+    }
+
     console.log(jobTitle);
     console.log(companyName);
     console.log(jobDetails);
     console.log(jobDescription);
+
+    // return;
 
     const currentUrl = window.location.href;
     console.log('Current URL:', currentUrl);
@@ -174,7 +187,8 @@ const requestResume = function () {
     fetch((isHost ? serverUrl : 'http://localhost:4321') + '/job-apply-extension', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': true
         },
         body: JSON.stringify({
             jobTitle,
@@ -199,16 +213,16 @@ const requestResume = function () {
         }
     });
 
-    const showMoreElement = Array.from(document.querySelectorAll('*')).find(el => el.textContent.trim() === 'Apply now' && el.nodeName === 'BUTTON');
-    if (showMoreElement) {
-        console.log('Found the element:', showMoreElement);
-        const evt = new MouseEvent('click', {
-            bubbles: true,    // if you want the event to bubble up through the DOM
-            cancelable: true, // if you want the event to be cancellable
-            ctrlKey: true     // simulate Ctrl + Click
-        });
-        showMoreElement.dispatchEvent(evt);
-    } else {
-        console.log('Show more element not found');
-    }
+    // const showMoreElement = Array.from(document.querySelectorAll('*')).find(el => el.textContent.trim() === 'Apply now' && el.nodeName === 'BUTTON');
+    // if (showMoreElement) {
+    //     console.log('Found the element:', showMoreElement);
+    //     const evt = new MouseEvent('click', {
+    //         bubbles: true,    // if you want the event to bubble up through the DOM
+    //         cancelable: true, // if you want the event to be cancellable
+    //         ctrlKey: true     // simulate Ctrl + Click
+    //     });
+    //     showMoreElement.dispatchEvent(evt);
+    // } else {
+    //     console.log('Show more element not found');
+    // }
 }

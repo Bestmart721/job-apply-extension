@@ -15,7 +15,8 @@
                 "https://www.dice.com/jobs*",
                 "https://www.builtin.com/jobs*",
                 "https://builtin.com/jobs*",
-                "https://builtin.com/job*"
+                "https://builtin.com/job*",
+                "https://app.welcometothejungle.com/jobs*"
             ],
             "js": [
                 "content.js"
