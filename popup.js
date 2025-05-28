@@ -1,33 +1,40 @@
-let currentHotkey = '';
-const input = document.getElementById('hotkey');
+const profileKeyInput = document.getElementById('profileKey')
+const selectkeyInput = document.getElementById('selectkey');
+const smartkeyInput = document.getElementById('smartkey');
+const jdCheckbox = document.getElementById('downloadJD');
 const form = document.getElementById('settingsForm');
+const profileNameElement = document.getElementById('profileName');
 
-// Load saved hotkey and server URL on popup open
-chrome.storage.local.get(['hotkey', 'serverUrl', 'isHost'], (result) => {
-    if (result.hotkey) {
-        currentHotkey = result.hotkey;
-        input.value = currentHotkey;
-        console.log('Loaded hotkey:', currentHotkey);
+// Load saved smartkey and profile Key on popup open
+chrome.storage.local.get((result) => {
+    if (result.profileName) {
+        profileNameElement.textContent = result.profileName;
     }
-    if (result.serverUrl) {
-        const serverUrlInput = document.getElementById('serverUrl');
-        serverUrlInput.value = result.serverUrl;
-        console.log('Loaded server URL:', result.serverUrl);
+    if (result.selectkey) {
+        selectkeyInput.value = result.selectkey;
+        console.log('Loaded selectkey:', result.selectkey);
     }
-    if (result.isHost) {
-        const hostCheckbox = document.getElementById('isHost');
-        hostCheckbox.checked = result.isHost;
-        console.log('Loaded isHost:', result.isHost);
+    if (result.smartkey) {
+        smartkeyInput.value = result.smartkey;
+        console.log('Loaded smartkey:', result.smartkey);
+    }
+    if (result.profileKey) {
+        profileKeyInput.value = result.profileKey;
+        console.log('Loaded profile Key:', result.profileKey);
+    }
+    if (result.downloadJD) {
+        jdCheckbox.checked = result.downloadJD;
+        console.log('Loaded downloadJD:', result.downloadJD);
     }
 });
 
-// When user sets a hotkey
-input.addEventListener('keydown', (e) => {
+// When user sets a selectkey
+selectkeyInput.addEventListener('keydown', (e) => {
     e.preventDefault();
 
     if (e.key === 'Backspace') {
-        input.value = '';
-        currentHotkey = '';
+        selectkeyInput.value = '';
+        chrome.storage.local.set({ selectkey: '' });
         return;
     }
 
@@ -38,52 +45,88 @@ input.addEventListener('keydown', (e) => {
     if (e.metaKey) keys.push('Meta');
 
     if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
-        keys.push(e.key);
+        let key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+        keys.push(key);
     }
 
     const combo = keys.join(' + ');
-    input.value = combo;
-    currentHotkey = combo;
-    console.log('Saved hotkey:', currentHotkey);
+    selectkeyInput.value = combo;
+
+    // Check for conflict with smartkey
+    if (smartkeyInput.value === combo) {
+        smartkeyInput.value = '';
+        chrome.storage.local.set({ smartkey: '' });
+    }
+
+    chrome.storage.local.set({ selectkey: combo });
+    console.log('Saved select key:', combo);
 });
 
-// Handle form submit
-form.addEventListener('submit', (e) => {
-    e.preventDefault(); // stop page reload
+// When user sets a smartkey
+smartkeyInput.addEventListener('keydown', (e) => {
+    e.preventDefault();
 
-    currentHotkey = input.value;
+    if (e.key === 'Backspace') {
+        smartkeyInput.value = '';
+        chrome.storage.local.set({ smartkey: '' });
+        return;
+    }
 
-    chrome.storage.local.set({ hotkey: currentHotkey }, () => {
-        console.log('Hotkey saved:', currentHotkey);
-    });
-
-    // Optional: you can also save server URL like this
-    const serverUrl = document.getElementById('serverUrl').value;
-    chrome.storage.local.set({ serverUrl });
-    const isHost = document.getElementById('isHost').checked;
-    chrome.storage.local.set({ isHost });
-    window.close(); // close the popup after saving
-});
-
-// Global listener
-document.addEventListener('keydown', (e) => {
     let keys = [];
     if (e.ctrlKey) keys.push('Ctrl');
     if (e.altKey) keys.push('Alt');
     if (e.shiftKey) keys.push('Shift');
     if (e.metaKey) keys.push('Meta');
+
     if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
-        keys.push(e.key);
+        let key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+        keys.push(key);
     }
 
-    const currentCombo = keys.join(' + ');
+    const combo = keys.join(' + ');
+    smartkeyInput.value = combo;
 
-    chrome.storage.local.get('hotkey', (result) => {
-        const saved = result.hotkey;
-        console.log('comparing');
-        if (currentCombo === saved) {
-            console.log(`Hotkey "${saved}" triggered!`);
-            alert(`Triggered hotkey: ${saved}`);
+    // Check for conflict with selectkey
+    if (selectkeyInput.value === combo) {
+        selectkeyInput.value = '';
+        chrome.storage.local.set({ selectkey: '' });
+    }
+
+    chrome.storage.local.set({ smartkey: combo });
+    console.log('Saved smartkey:', combo);
+});
+
+profileKeyInput.addEventListener('input', (e) => {
+    chrome.storage.local.set({ profileKey: e.target.value });
+});
+
+jdCheckbox.addEventListener('change', (e) => {
+    chrome.storage.local.set({ downloadJD: e.target.checked });
+});
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local') {
+        if (changes.profileName) {
+            console.log('Profile name changed:', changes.profileName.newValue);
+            profileNameElement.textContent = changes.profileName.newValue;
         }
-    });
+    }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log(message)
+    if (message.type === "notification") {
+        console.log("Data received in popup:", message.message);
+        // update DOM or do whatever
+        message.message = message.message.replace(/\n/g, '<br>'); // Replace newlines with <br> for HTML display
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML += `<div class="container border-top border-1">${message.message}</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+});
+
+
+document.getElementById('toggleSettingsBtn').addEventListener('click', function () {
+    const container = document.getElementById('settingsContainer');
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
 });

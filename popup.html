@@ -1,35 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Apply Extension</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
-        body {
-            width: 300px;
-        }
-    </style>
-  </head>
-  <body>
-    <div class="container my-3">
-        <h3 class="text-center-">Job Apply Extension</h3>
-        <form id="settingsForm">
-            <div class="mb-3">
-                <label for="serverUrl" class="form-label">Server URL</label>
-                <input type="url" class="form-control" id="serverUrl" name="serverUrl" placeholder="Enter server URL" required>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Apply Extension</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="d-flex flex-column align-items-center justify-content-center vh-100 overflow-hidden">
+    <nav class="navbar navbar-dark bg-primary w-100 d-flex justify-content-between">
+      <span class="navbar-brand mb-0 h3 mx-auto text-white" id="profileName">Unknown Profile</span>
+      <span id="toggleSettingsBtn" role="button" tabindex="0" class="me-2 p-1" aria-label="Toggle Settings"
+        style="cursor: pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-gear-fill"
+          viewBox="0 0 16 16">
+          <path
+            d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+        </svg>
+      </span>
+    </nav>
+    <div class="container mt-2" id="settingsContainer" style="display: none;">
+      <form id="settingsForm">
+        <div class="mb-2 row align-items-center">
+          <label for="profileKey" class="col-3 col-form-label">ProfileKey</label>
+          <div class="col-9">
+            <input type="text" class="form-control" id="profileKey" name="profileKey" placeholder="Enter Profile Key"
+              required>
+          </div>
+        </div>
+        <div class="mb-2 row align-items-center">
+          <label for="selectkey" class="col-3 col-form-label">Selectkey</label>
+          <div class="col-9">
+            <input type="text" class="form-control" id="selectkey" name="selectkey" placeholder="Enter Selectkey combination"
+              required>
+          </div>
+        </div>
+        <div class="mb-2 row align-items-center">
+          <label for="smartkey" class="col-3 col-form-label">Smartkey</label>
+          <div class="col-9">
+            <input type="text" class="form-control" id="smartkey" name="smartkey" placeholder="Enter Smartkey combination"
+              required>
+          </div>
+        </div>
+        <div class="mb-2 row align-items-center">
+          <div class="offset-3 col-9">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="downloadJD" name="downloadJD">
+              <label class="form-check-label" for="downloadJD">Download JD</label>
             </div>
-            <div class="mb-3">
-                <label for="hotkey" class="form-label">Hotkey</label>
-                <input type="text" class="form-control" id="hotkey" name="hotkey" placeholder="Enter hotkey combination" required>
-            </div>
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="isHost" name="isHost">
-              <label class="form-check-label" for="isHost">I am a host</label>
-            </div>
-            <button type="submit" class="btn btn-primary">Save</button>
-        </form>
+          </div>
+        </div>
+      </form>
     </div>
-    <script src="popup.js"></script>
-  </body>
+    <div id="messages" class="overflow-auto flex-grow-1 bg-light border-top border-1 font-monospace w-100" style="font-size: 0.85rem;">
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
 </html>

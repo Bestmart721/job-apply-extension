@@ -1,13 +1,22 @@
 {
     "manifest_version": 3,
-    "name": "Job Application Filter",
+    "name": "Job Apply Extension",
     "description": "Highlight blacklisted companies in job listings and support hotkeys on some platforms.",
     "version": "2.0",
     "action": {
-      "default_popup": "popup.html",
-      "default_icon": "262404.png"
+        "default_popup": "popup.html",
+        "default_icon": "placement.png",
+        "default_title": "Open Sidebar"
     },
-    "permissions": ["storage"],
+    "icons": {
+        "16": "placement.png",
+        "48": "placement.png",
+        "128": "placement.png"
+    },
+    "permissions": [
+        "storage",
+        "sidePanel"
+    ],
     "content_scripts": [
         {
             "matches": [
@@ -22,8 +31,15 @@
                 "content.js"
             ],
             "css": [
-                "styles.css"
+                "popup.css"
             ]
         }
-    ]
+    ],
+    "side_panel": {
+        "default_path": "popup.html",
+        "open_at_install": true
+    },
+    "background": {
+        "service_worker": "background.js"
+    }
 }
