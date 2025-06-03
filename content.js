@@ -1,6 +1,7 @@
 // List of company names to blacklist
 let blacklist = []; // Add your companies here
-let serverUrl = 'http://localhost:5000'; // Default server URL
+// let serverUrl = 'https://localhost:5000'; // Default server URL
+let serverUrl = 'https://rfh20urlth.execute-api.us-east-2.amazonaws.com'; // Default server URL
 
 let settings = {
     profileKey: '', // Default profileKey
@@ -82,7 +83,6 @@ document.addEventListener('keydown', (e) => {
     }
 
     const currentCombo = keys.join(' + ');
-    console.log('Current key combination:', currentCombo, 'Smartkey:', settings.smartkey, 'Selectkey:', settings.selectkey);
     if (currentCombo === settings.smartkey) {
         selectSmartJD();
     }
@@ -92,14 +92,21 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-function showNotification(message) {
+function showNotification(type, message, options) {
     const bubble = document.createElement('div');
     bubble.textContent = message;
+    let backgroundColor = '#333';
+    if (type === 'success') backgroundColor = '#198754'; // Bootstrap 5 success
+    else if (type === 'error') backgroundColor = '#dc3545'; // Bootstrap 5 danger
+    else if (type === 'warning' || type === 'warn') backgroundColor = '#ffc107'; // Bootstrap 5 warning
+    else if (type === 'info') backgroundColor = '#0dcaf0'; // Bootstrap 5 info
+
     Object.assign(bubble.style, {
         position: 'fixed',
-        top: '20px',
-        right: '20px',
-        background: '#333',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        background: backgroundColor,
         color: '#fff',
         padding: '10px 15px',
         borderRadius: '8px',
@@ -107,13 +114,16 @@ function showNotification(message) {
         fontSize: '14px',
         boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
         transition: 'opacity 0.3s ease',
+        opacity: '1',
+        maxWidth: '80vw',
+        textAlign: 'center',
+        fontWeight: 'bold',
     });
 
     document.body.appendChild(bubble);
 
     chrome.runtime.sendMessage({
-        type: 'notification',
-        message: message
+        type, message, options
     });
 
     setTimeout(() => {
@@ -121,6 +131,22 @@ function showNotification(message) {
         setTimeout(() => bubble.remove(), 300);
     }, 5000);
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "proceedWarning") {
+        // Handle proceedWarning logic here
+        console.log("Background received proceedWarning:", message.options);
+        // Optionally send a response
+        // sendResponse({ status: "proceeded" });
+    }
+    if (message.type === "cancelWarning") {
+        // Handle cancelWarning logic here
+        console.log("Background received cancelWarning");
+        // Optionally send a response
+        // sendResponse({ status: "cancelled" });
+    }
+    // Return true if you want to send a response asynchronously
+});
 
 // document.addEventListener('keydown', (e) => {
 //     if (e.ctrlKey && e.key === '`') {
@@ -138,16 +164,16 @@ const selectSelectJD = function () {
     let displayText = selectedText.length > showLength ? selectedText.slice(0, showLength) + '...' : selectedText;
     console.log('Display text:', displayText);
     if (!selectedText) {
-        showNotification('No text selected. Please select some text to request.');
+        showNotification('error', 'No text selected. Please select some text.');
         return;
     }
-    showNotification('Selected text: ' + displayText);
-    
+    // showNotification('info', 'Selected text: ' + displayText);
+
     const currentUrl = window.location.href;
     console.log('Current URL:', currentUrl);
 
     requestResume(selectedText, currentUrl);
-    showNotification('Requested in select way.');
+    showNotification('info', 'Requested with select key.');
 }
 
 const selectSmartJD = function () {
@@ -193,7 +219,7 @@ const selectSmartJD = function () {
     const urlParams = new URLSearchParams(window.location.search);
 
     requestResume(jobDescription, currentUrl, job_title, company_name, jobDetails);
-    showNotification('Requested in smart way.');
+    showNotification('info', 'Requested with smart key.');
 
     // const showMoreElement = Array.from(document.querySelectorAll('*')).find(el => el.textContent.trim() === 'Apply now' && el.nodeName === 'BUTTON');
     // if (showMoreElement) {
@@ -235,12 +261,18 @@ function requestResume(jobDescription, url = '', job_title = '', company_name = 
             if (data.jdUrl && settings.downloadJD) {
                 download(data.jdUrl, data.jdUrl.split('/').pop() || 'job-description.txt');
             }
-            showNotification('Files downloaded.');
+            showNotification('success', 'Files downloaded.');
         } else {
-            showNotification('Request failed: ' + data.message || response.statusText);
+            showNotification('warning', 'Request failed: ' + data.message || response.statusText, {
+                job_title,
+                company_name,
+                jobDetails,
+                jobDescription,
+                url,
+            });
         }
     }).catch((error, a, b) => {
-        showNotification('Request failed: ' + error.message);
+        showNotification('error', 'Request failed: ' + error.message);
     });
 }
 
