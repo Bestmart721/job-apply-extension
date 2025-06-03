@@ -253,15 +253,26 @@ function requestResume(jobDescription, url = '', job_title = '', company_name = 
     }).then(async response => {
         const data = await response.json();
         if (response.status === 200) {
-            console.log('Response data:', data);
-            // data should have resumeUrl and jdUrl (URLs to download)
-            if (data.resumeUrl) {
-                download(data.resumeUrl, data.resumeUrl.split('/').pop() || 'resume.docx');
+            if (data.status === 'success') {
+                console.log('Response data:', data);
+                // data should have resumeUrl and jdUrl (URLs to download)
+                if (data.resumeUrl) {
+                    download(data.resumeUrl, data.resumeUrl.split('/').pop() || 'resume.docx');
+                }
+                if (data.jdUrl && settings.downloadJD) {
+                    download(data.jdUrl, data.jdUrl.split('/').pop() || 'job-description.txt');
+                }
+                showNotification('success', 'Files downloaded.');
+            } else if (data.status === 'warning') {
+                console.warn('Warning from server:', data.message);
+                showNotification('warning', 'Warning: ' + data.message, {
+                    job_title,
+                    company_name,
+                    jobDetails,
+                    jobDescription,
+                    url,
+                });
             }
-            if (data.jdUrl && settings.downloadJD) {
-                download(data.jdUrl, data.jdUrl.split('/').pop() || 'job-description.txt');
-            }
-            showNotification('success', 'Files downloaded.');
         } else {
             showNotification('warning', 'Request failed: ' + data.message || response.statusText, {
                 job_title,
@@ -277,7 +288,7 @@ function requestResume(jobDescription, url = '', job_title = '', company_name = 
 }
 
 function download(url, filename) {
-    fetch(serverUrl + url)
+    fetch(`${serverUrl}/files?path=${encodeURIComponent(url)}`)
         .then(response => response.blob())
         .then(blob => {
             const blobUrl = URL.createObjectURL(blob);
